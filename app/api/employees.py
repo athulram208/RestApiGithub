@@ -1,4 +1,3 @@
-# app/api/employees.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 
@@ -8,11 +7,13 @@ employees_bp = Blueprint("employees", __name__)
 employees = []
 current_id = 1
 
+
 # Create an employee
 @employees_bp.route("", methods=["POST"])
 @jwt_required()
 def create_employee():
     global current_id
+
     data = request.get_json() or {}
 
     employee = {
@@ -27,7 +28,8 @@ def create_employee():
     employees.append(employee)
     current_id += 1
 
-    return jsonify({"employee": employee}), 201
+    return jsonify(employee), 201
+
 
 # Get all employees
 @employees_bp.route("", methods=["GET"])
@@ -35,18 +37,24 @@ def create_employee():
 def list_employees():
     return jsonify({
         "count": len(employees),
-        "employees": employees
+        "data": employees
     }), 200
+
 
 # Get single employee by ID
 @employees_bp.route("/<int:employee_id>", methods=["GET"])
 @jwt_required()
 def get_employee(employee_id):
-    for emp in employees:
-        if emp["EmployeeID"] == employee_id:
-            return jsonify(emp), 200
+    employee = next(
+        (emp for emp in employees if emp["EmployeeID"] == employee_id),
+        None
+    )
 
-    return jsonify({"message": "Employee not found"}), 404
+    if not employee:
+        return jsonify({"message": "Employee not found"}), 404
+
+    return jsonify(employee), 200
+
 
 # Update employee by ID
 @employees_bp.route("/<int:employee_id>", methods=["PUT"])
@@ -54,25 +62,37 @@ def get_employee(employee_id):
 def update_employee(employee_id):
     data = request.get_json() or {}
 
-    for emp in employees:
-        if emp["EmployeeID"] == employee_id:
-            emp["FirstName"] = data.get("FirstName", emp["FirstName"])
-            emp["LastName"] = data.get("LastName", emp["LastName"])
-            emp["Gender"] = data.get("Gender", emp["Gender"])
-            emp["DateOfBirth"] = data.get("DateOfBirth", emp["DateOfBirth"])
-            emp["DepartmentID"] = data.get("DepartmentID", emp["DepartmentID"])
-            return jsonify({"employee": emp}), 200
+    employee = next(
+        (emp for emp in employees if emp["EmployeeID"] == employee_id),
+        None
+    )
 
-    return jsonify({"message": "Employee not found"}), 404
+    if not employee:
+        return jsonify({"message": "Employee not found"}), 404
+
+    employee["FirstName"] = data.get("FirstName", employee["FirstName"])
+    employee["LastName"] = data.get("LastName", employee["LastName"])
+    employee["Gender"] = data.get("Gender", employee["Gender"])
+    employee["DateOfBirth"] = data.get("DateOfBirth", employee["DateOfBirth"])
+    employee["DepartmentID"] = data.get("DepartmentID", employee["DepartmentID"])
+
+    return jsonify(employee), 200
+
 
 # Delete employee by ID
 @employees_bp.route("/<int:employee_id>", methods=["DELETE"])
 @jwt_required()
 def delete_employee(employee_id):
     global employees
-    for emp in employees:
-        if emp["EmployeeID"] == employee_id:
-            employees = [e for e in employees if e["EmployeeID"] != employee_id]
-            return jsonify({"message": "Employee deleted"}), 200
 
-    return jsonify({"message": "Employee not found"}), 404
+    employee = next(
+        (emp for emp in employees if emp["EmployeeID"] == employee_id),
+        None
+    )
+
+    if not employee:
+        return jsonify({"message": "Employee not found"}), 404
+
+    employees = [emp for emp in employees if emp["EmployeeID"] != employee_id]
+
+    return jsonify({"message": "Employee deleted"}), 200
