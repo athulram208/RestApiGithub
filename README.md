@@ -588,7 +588,7 @@ Content-Type: application/json
 
 ---
 
-#### Update Student
+#### Update Student.....
 
 | Method | Endpoint | Auth Required |
 |--------|----------|---------------|
