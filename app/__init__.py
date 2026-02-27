@@ -10,8 +10,7 @@ def create_app(config_name: str = "development") -> Flask:
 
     from app.api.auth import auth_bp
     from app.api.health import health_bp
-    from app.api.employees import employees_bp
-    from app.api.students import students_bp   # ✅ FIXED
+    from app.api.employees import students_bp   
 
     app.register_blueprint(health_bp, url_prefix="/api/v1")
     app.register_blueprint(auth_bp, url_prefix="/api/v1/auth")
